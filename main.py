@@ -13,16 +13,17 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 def root_route():
-    return {"this is": "root"}
+    return {"hello": "world"}
 
 
 @app.post("/chat")
 def chat_w_llm(chat_request: ChatRequest):
+    # ollama_url = "http://ollama:11434/api/generate"
     ollama_url = "http://localhost:11434/api/generate"
 
     payload = {
         "model": "qwen:0.5b",
-        "prompt": chat_request.message,
+        "prompt": f"answer the following prompt like a dog: ${chat_request.message}",
     }
 
     try:
