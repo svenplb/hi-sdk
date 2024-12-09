@@ -1,36 +1,47 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List, Optional, Dict
 import requests
 import json
-
 
 app = FastAPI()
 
 
 class ChatRequest(BaseModel):
     message: str
-
-
-@app.get("/")
-def root_route():
-    return {"hello": "world"}
+    conversation_history: List[Dict[str, str]] = []
+    system_prompt: Optional[str] = None
+    role: Optional[str] = None
 
 
 @app.post("/chat")
 def chat_w_llm(chat_request: ChatRequest):
-    # ollama_url = "http://ollama:11434/api/generate"
     ollama_url = "http://localhost:11434/api/generate"
 
+    # Build the prompt based on available context
+    prompt = ""
+    if chat_request.system_prompt:
+        prompt += f"System: {chat_request.system_prompt}\n\n"
+
+    if chat_request.role:
+        prompt += f"You are acting as: {chat_request.role}\n\n"
+
+    # Add conversation history
+    for msg in chat_request.conversation_history:
+        prompt += f"{msg['role']}: {msg['content']}\n"
+
+    # Add current message
+    prompt += f"\nUser: {chat_request.message}\n"
+
     payload = {
-        "model": "qwen:0.5b",
-        "prompt": f"answer the following prompt like a dog: ${chat_request.message}",
+        "model": "qwen:1.8b",
+        "prompt": prompt,
     }
 
     try:
         response = requests.post(ollama_url, json=payload, stream=True)
         response.raise_for_status()
 
-        # Accumulate the response tokens
         full_response = ""
         for line in response.iter_lines():
             if line:
@@ -43,8 +54,4 @@ def chat_w_llm(chat_request: ChatRequest):
         return {"response": full_response}
 
     except Exception as e:
-        print(f"Error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

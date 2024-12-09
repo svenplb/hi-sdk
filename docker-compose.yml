@@ -1,43 +1,10 @@
 version: '3.8'
 
 services:
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    volumes:
-      - ollama_data:/root/.ollama
-    ports:
-      - "11435:11434"
-
-  model-pull:
-    image: curlimages/curl
-    depends_on:
-      - ollama
-    command: >
-      -X POST http://ollama:11434/api/pull
-      -H "Content-Type: application/json"
-      -d '{"name": "qwen:0.5b"}'
-    restart: on-failure:3
-
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: plam_api
+    container_name: hi_api
     ports:
       - "8000:8000"
-    depends_on:
-      - model-pull
-
-  cli:
-    build:
-      context: .
-      dockerfile: Dockerfile.cli
-    container_name: plam_cli
-    stdin_open: true
-    tty: true
-    depends_on:
-      - api
-
-volumes:
-  ollama_data: 
