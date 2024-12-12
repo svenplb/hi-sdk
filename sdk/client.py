@@ -3,6 +3,15 @@ from typing import List, Optional, Dict, Callable, Any
 import time
 import threading
 import json
+from .exceptions import (
+    SDKException,
+    ModelNotFoundError,
+    InvalidConfigError,
+    ConnectionError,
+    StreamingError,
+    CallbackError
+)
+from .utils import SDKLogger, Metrics
 
 """
 two main classes: conversation, client
@@ -16,17 +25,13 @@ class ModelConfig:
     AVAILABLE_MODELS = ["qwen:0.5b", "qwen:1.8b", "gemma2:2b"]
 
     def __init__(self, model_name: str = "qwen:1.8b", **kwargs):
-        try:
-            if model_name not in self.AVAILABLE_MODELS:
-                error_msg = f"Invalid Model Selection: '{model_name}'\nAvailable models:\n" + \
-                    "\n".join(
-                        f"  • {model}" for model in self.AVAILABLE_MODELS)
-                raise ValueError(error_msg)
-            self.model_name = model_name
-            self.parameters = kwargs
-        except Exception as e:
-            print("\033[91m" + str(e) + "\033[0m")
-            raise
+        if model_name not in self.AVAILABLE_MODELS:
+            error_msg = f"Model '{model_name}' not found. Available models:\n" + \
+                "\n".join(f"  • {model}" for model in self.AVAILABLE_MODELS)
+            raise ModelNotFoundError(error_msg)
+
+        self.model_name = model_name
+        self.parameters = kwargs
 
 
 class ModelManager:
@@ -57,6 +62,7 @@ class Conversation:
 
 
 # client class, holds the conversation, system prompt, and callbacks
+# ! TODO: Add set role
 class HiClient:
     def __init__(self, base_url="http://localhost:8000", track_conversation=False):
         self.base_url = base_url
@@ -66,6 +72,8 @@ class HiClient:
         self._continuous_chat = False
         self._callbacks = {}
         self.model_manager = ModelManager()
+        self.logger = SDKLogger()
+        self.metrics = Metrics()
 
     def load_model(self, model_name: str, **kwargs):
         self.model_manager.load_model(model_name, **kwargs)
@@ -103,6 +111,9 @@ class HiClient:
     # chat function, sends a message to the server and returns the response
     def chat(self, message: str, role: Optional[str] = None) -> str:
         try:
+            if not message.strip():
+                raise InvalidConfigError("Message cannot be empty")
+
             payload = {
                 "message": message,
                 "conversation_history": self.conversation.get_history() if self.track_conversation else []
@@ -114,44 +125,75 @@ class HiClient:
             if role:
                 payload["role"] = role
 
-            if self.model_manager.model_config:
-                payload["model"] = self.model_manager.model_config.model_name
-                payload["model_parameters"] = self.model_manager.model_config.parameters
+            if not self.model_manager.model_config:
+                raise InvalidConfigError(
+                    "No model loaded. Call load_model() first")
 
-            if 'on_request' in self._callbacks:
-                self._callbacks['on_request'](message)
+            payload["model"] = self.model_manager.model_config.model_name
+            payload["model_parameters"] = self.model_manager.model_config.parameters
 
-            response = requests.post(
-                f"{self.base_url}/chat",
-                json=payload,
-                stream=True
-            )
-            response.raise_for_status()
+            try:
+                if 'on_request' in self._callbacks:
+                    self._callbacks['on_request'](message)
+            except Exception as e:
+                raise CallbackError(f"Error in on_request callback: {str(e)}")
+
+            try:
+                response = requests.post(
+                    f"{self.base_url}/chat",
+                    json=payload,
+                    stream=True
+                )
+                response.raise_for_status()
+            except requests.exceptions.ConnectionError:
+                raise ConnectionError(
+                    f"Failed to connect to server at {self.base_url}")
+            except requests.exceptions.HTTPError as e:
+                raise ConnectionError(f"HTTP error occurred: {str(e)}")
 
             full_response = ""
-            for chunk in response.iter_lines():
-                if chunk:
-                    chunk_content = chunk.decode()
-                    full_response += chunk_content
+            try:
+                for chunk in response.iter_lines():
+                    if chunk:
+                        chunk_content = chunk.decode()
+                        full_response += chunk_content
 
-                    if 'on_token' in self._callbacks:
-                        self._callbacks['on_token'](chunk_content)
+                        if 'on_token' in self._callbacks:
+                            try:
+                                self._callbacks['on_token'](chunk_content)
+                            except Exception as e:
+                                raise CallbackError(
+                                    f"Error in on_token callback: {str(e)}")
+            except Exception as e:
+                raise StreamingError(
+                    f"Error while streaming response: {str(e)}")
 
             if self.track_conversation:
                 self.conversation.add_message("user", message)
                 self.conversation.add_message("assistant", full_response)
 
             if 'on_response' in self._callbacks:
-                self._callbacks['on_response'](full_response)
+                try:
+                    self._callbacks['on_response'](full_response)
+                except Exception as e:
+                    raise CallbackError(
+                        f"Error in on_response callback: {str(e)}")
+
+            latency = self.metrics.end_request()
+            token_count = len(full_response.split())
+            self.metrics.record_tokens(token_count)
+            self.logger.info(
+                f"Request completed in {latency:.2f}s with {token_count} tokens")
 
             return full_response
 
-        except Exception as e:
-            error_msg = f"\n\n❌ Error during chat:\n  • {str(e)}\n"
+        except SDKException as e:
             if 'on_error' in self._callbacks:
-                self._callbacks['on_error'](error_msg)
-            print("\033[91m" + error_msg + "\033[0m")
-            return None
+                try:
+                    self._callbacks['on_error'](str(e))
+                except Exception as callback_error:
+                    print(f"Error in error callback: {str(callback_error)}")
+            raise
 
     def clear_conversation(self):
         self.conversation = Conversation()

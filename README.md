@@ -1,34 +1,32 @@
-Metadata-Version: 2.1
-Name: hi-sdk
-Version: 0.1
-Summary: LLM Development Kit for Raspberry Pi
-Home-page: https://github.com/svenplb/hi-sdk
-Author: Your Name
-Author-email: psven595@gmail.com
-License: MIT
-Requires-Python: >=3.7
-Description-Content-Type: text/markdown
+# Hi SDK - LLM Development Kit for Raspberry Pi
 
-# Hi SDK - Quick Start Guide
+A Python SDK for interacting with LLM models on Raspberry Pi.
 
-A Python SDK for interacting with LLM models.
-
-## Installation
+## Installation Options
 
 ### Option 1: Pre-built Raspberry Pi Image
 Download our pre-configured Raspberry Pi image with all dependencies:
 [Download Hi SDK Image](your_drive_link_here)
 
-### Option 2: Manual Installation
+This is a pre-built image with all dependencies installed on a Raspberry Pi OS 6.6.31+rpt-rpi-v8.
+
+### Option 2: Development Setup
 
 Prerequisites:
-- Python 3.7 or higher
-- Raspberry Pi OS or similar Linux distribution 
-
-### Option 3: Pip Installation
+- Python 3.11.2 or higher
+- Raspberry Pi OS
 
 ```bash
-pip install hi-sdk
+# Clone the repository
+git clone https://github.com/svenplb/hi-sdk.git
+cd hi-sdk
+
+# Create and activate virtual environment
+python3 -m venv --system-site-packages venv
+source venv/bin/activate
+
+# Install in development mode
+pip install -e .
 ```
 
 ## Quick Start
@@ -76,3 +74,23 @@ hi models
 - Performance metrics
 - Conversation tracking
 - CLI interface
+
+## Development
+
+We suggest using a virtual environment (we preinstall all dependencies on the device at the default path `/home/hi-sdk/venv`)
+
+The project structure:
+```
+hi-sdk/
+├── sdk/
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── client.py
+│   ├── utils.py
+│   └── exceptions.py
+├── examples/
+│   └── quickstart.py
+├── tests/
+│   └── test_api.py
+└── setup.py
+```

@@ -1,8 +1,14 @@
+README.md
+pyproject.toml
 setup.py
 hi_sdk.egg-info/PKG-INFO
 hi_sdk.egg-info/SOURCES.txt
 hi_sdk.egg-info/dependency_links.txt
-hi_sdk.egg-info/requires.txt
 hi_sdk.egg-info/top_level.txt
 sdk/__init__.py
+sdk/cli.py
 sdk/client.py
+sdk/exceptions.py
+sdk/utils.py
+tests/__init__.py
+tests/test_api.py
