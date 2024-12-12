@@ -78,7 +78,7 @@ def setup(dev):
     import sys
     from pathlib import Path
 
-    print(f"{Fore.CYAN}Setting up Hi SDK...{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Setting up Hi SDK... Grab a coffee, this will take a while! ☕{Style.RESET_ALL}")
 
     try:
         # Install Ollama
