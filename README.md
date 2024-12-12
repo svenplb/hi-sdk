@@ -55,7 +55,12 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-4. Start the API server:
+4. Run Ollama on new terminal:
+```bash
+ollama serve
+```
+
+5. Start the API server on new terminal:
 ```bash
 python3 -m uvicorn main:app --reload
 ```
