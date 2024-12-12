@@ -5,74 +5,14 @@ Summary: LLM Development Kit for Raspberry Pi
 Home-page: https://github.com/svenplb/hi-sdk
 Author: Your Name
 Author-email: psven595@gmail.com
-License: MIT
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3
 Requires-Python: >=3.7
-Description-Content-Type: text/markdown
-
-# Hi SDK - Quick Start Guide
-
-A Python SDK for interacting with LLM models.
-
-## Installation
-
-### Option 1: Pre-built Raspberry Pi Image
-Download our pre-configured Raspberry Pi image with all dependencies:
-[Download Hi SDK Image](your_drive_link_here)
-
-### Option 2: Manual Installation
-
-Prerequisites:
-- Python 3.7 or higher
-- Raspberry Pi OS or similar Linux distribution 
-
-### Option 3: Pip Installation
-
-```bash
-pip install hi-sdk
-```
-
-## Quick Start
-
-```python
-from sdk.client import HiClient
-from sdk.utils import SDKLogger
-
-# Initialize client
-client = HiClient()
-
-# Load a model
-client.load_model("gemma2:2b", temperature=0.7)
-
-# Simple chat
-response = client.chat("Tell me a joke")
-print(response)
-
-# Streaming chat with callback
-def on_token(token):
-    print(token, end="", flush=True)
-
-client.register_callback("on_token", on_token)
-for _ in client.chat("Tell me another joke"):
-    pass  # Tokens handled by callback
-```
-
-## CLI Usage
-
-After installation, you can use the CLI:
-
-```bash
-# Start interactive chat
-hi chat --model gemma2:2b --temp 0.7
-
-# List available models
-hi models
-```
-
-## Features
-
-- Multiple model support (gemma2:2b, qwen:1.8b, qwen:0.5b)
-- Streaming responses
-- System prompts
-- Performance metrics
-- Conversation tracking
-- CLI interface
+Requires-Dist: requests
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: click
+Requires-Dist: colorama
+Requires-Dist: pydantic
