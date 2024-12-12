@@ -29,6 +29,39 @@ source venv/bin/activate
 pip install -e .
 ```
 
+### Option 3: Manual Setup (Without Image)
+
+If you prefer to set up dependencies manually on your existing system:
+
+1. Install system dependencies:
+```bash
+sudo apt-get update
+sudo apt-get install -y python3-pip git
+```
+
+2. Install Ollama (LLM backend):
+```bash
+curl https://ollama.ai/install.sh | sh
+ollama pull gemma:2b
+```
+
+3. Clone and set up the SDK:
+```bash
+git clone https://github.com/svenplb/hi-sdk.git
+cd hi-sdk
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+```
+
+4. Start the API server:
+```bash
+python3 -m uvicorn main:app --reload
+```
+
+Now you can use the SDK as shown in the Quick Start section.
+
 ## Quick Start
 
 ```python
