@@ -67,12 +67,12 @@ class TestAPI(unittest.TestCase):
 
     def setUp(self):
         self.client = HiClient()
-        self.client.load_model("gemma2:2b")
+        self.client.load_model("qwen:1.8b")
 
     def test_load_model(self):
         """Should successfully load a model"""
         self.assertEqual(
-            self.client.model_manager.model_config.model_name, "gemma2:2b")
+            self.client.model_manager.model_config.model_name, "qwen:1.8b")
 
     def test_invalid_model(self):
         """Should raise ModelNotFoundError when loading invalid model"""
@@ -114,7 +114,7 @@ class TestAPI(unittest.TestCase):
 
     def test_conversation_tracking(self):
         client = HiClient(track_conversation=True)
-        client.load_model("gemma2:2b")
+        client.load_model("qwen:1.8b")
 
         response = client.chat("Hello")
         self.assertEqual(len(client.conversation.messages), 2)
@@ -134,7 +134,7 @@ class TestAPI(unittest.TestCase):
     def test_connection_error(self):
         """Test that connection errors are properly handled"""
         client = HiClient(base_url="http://localhost:9999")
-        client.load_model("gemma2:2b")
+        client.load_model("qwen:1.8b")
         with self.assertRaises(ConnectionError):
             client.chat("Test message")
 

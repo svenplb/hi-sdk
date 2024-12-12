@@ -15,7 +15,7 @@ logger.info(f"Available models: {models}")
 
 # Load model and track performance
 metrics.start_request()
-client.load_model("gemma2:2b", temperature=0.5)
+client.load_model("qwen:1.8b", temperature=0.5)
 load_time = metrics.end_request()
 logger.info(f"Model loaded in {load_time:.2f}s")
 

@@ -76,7 +76,7 @@ Now you can use the SDK as shown in the Quick Start section.
 from sdk.client import HiClient
 
 client = HiClient()
-client.load_model("gemma2:2b", temperature=0.7)
+client.load_model("qwen:1.8b", temperature=0.7)
 response = client.chat("Tell me a joke")
 print(response)
 ```

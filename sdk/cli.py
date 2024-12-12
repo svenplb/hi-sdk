@@ -13,7 +13,7 @@ def cli():
 
 
 @cli.command()
-@click.option('--model', default='gemma2:2b', help='Model to load')
+@click.option('--model', default='qwen:1.8b', help='Model to load')
 @click.option('--temp', default=0.7, help='Temperature for generation')
 @click.option('--system-prompt', help='System prompt to use')
 @click.option('--role', help='Role for the assistant')
@@ -88,7 +88,7 @@ def setup(dev):
 
         # Pull models
         print("Downloading models...")
-        subprocess.run("ollama pull gemma:2b", shell=True, check=True)
+        subprocess.run("ollama pull qwen:1.8b", shell=True, check=True)
 
         if dev:
             # Create and activate venv
